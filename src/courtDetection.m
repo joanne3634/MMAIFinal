@@ -2,25 +2,25 @@ function [ court ] = courtDetection( fileName )
 
 [~, name] = fileparts(fileName);
 
-if(exist(['src\cache\' name '_courtDetect.mat'], 'file'))
-    load(['src\cache\' name '_courtDetect.mat']);
+if(exist(['src/cache/' name '_courtDetect.mat'], 'file'))
+    load(['src/cache/' name '_courtDetect.mat']);
     return;
 end
 
-if(exist(['src\cache\' name '_frame.mat'], 'file'))
-    load(['src\cache\' name '_frame.mat']);
+if(exist(['src/cache/' name '_frame.mat'], 'file'))
+    load(['src/cache/' name '_frame.mat']);
 else
-    videoObj = VideoReader(['video\' fileName]);
+    videoObj = VideoReader(['video/' fileName]);
     videoFrames = read(videoObj);
-    save(['src\cache\' name '_frame.mat'], 'videoFrames', '-v7.3');
+    save(['src/cache/' name '_frame.mat'], 'videoFrames', '-v7.3');
 end
 
 close all
 fig = figure;
-for i = 200 : size(videoFrames,4)
+for i = 217 : size(videoFrames,4)
     i
     l = whitePixelDetection(videoFrames(:,:,:,i));
-    image(l*255)
+    image(l*255);
 %     pause
     [h, theta, rho] = hough(l);
     peaks = houghpeaks(h, 10, 'Threshold', 0.2*max(h(:)), 'NHoodSize', [ceil(size(h,1)/100)+1 ceil(size(h,2)/100)+1]);
@@ -35,14 +35,14 @@ for i = 200 : size(videoFrames,4)
         else
             horLines = [horLines lines(j)];
         end
-%         line([lines(j).point1(1) lines(j).point2(1)], [lines(j).point1(2) lines(j).point2(2)]);
-%         lines(j).rho
-%         pause
+        line([lines(j).point1(1) lines(j).point2(1)], [lines(j).point1(2) lines(j).point2(2)]);
+        lines(j).rho
+        pause
     end
     lx = inf;
     rx = -inf;
     for j = 1 : size(verLines,2)
-        tmp = (verLines{j}.rho - sin(verLines{j}.theta*pi/180)*(size(l,1)/2)) / cos(verLines{j}.theta*pi/180)
+        tmp = (verLines{j}.rho - sin(verLines{j}.theta*pi/180)*(size(l,1)/2)) / cos(verLines{j}.theta*pi/180);
         if(tmp < lx)
             lLine = verLines{j};
             lx = tmp;
@@ -54,30 +54,33 @@ for i = 200 : size(videoFrames,4)
     end
     ty = -inf;
     by = inf;
+    size(horLines,2)
     for j = 1 : size(horLines,2)
-        if(horLines{j}.rho > ty)
-            tLine = horLines{j};
-            ty = horLines{j}.rho;
-        end
-        if(horLines{j}.rho < by)
-            bLine = horLines{j};
-            by = horLines{j}.rho;
+        if(horLines{j}.rho < 0)
+            if(horLines{j}.rho > ty)
+                tLine = horLines{j};
+                ty = horLines{j}.rho;
+            end
+            if(horLines{j}.rho < by)
+                bLine = horLines{j};
+                by = horLines{j}.rho;
+            end
         end
     end
     line([lLine.point1(1) lLine.point2(1)], [lLine.point1(2) lLine.point2(2)]);
     line([rLine.point1(1) rLine.point2(1)], [rLine.point1(2) rLine.point2(2)]);
     line([tLine.point1(1) tLine.point2(1)], [tLine.point1(2) tLine.point2(2)]);
     line([bLine.point1(1) bLine.point2(1)], [bLine.point1(2) bLine.point2(2)]);
-    lt = houghLineIntersect(lLine, tLine);
-    rt = houghLineIntersect(rLine, tLine);
-    lb = houghLineIntersect(lLine, bLine);
-    rb = houghLineIntersect(rLine, bLine);
+    lt = houghLineIntersect(lLine, tLine)
+    rt = houghLineIntersect(rLine, tLine)
+    lb = houghLineIntersect(lLine, bLine)
+    rb = houghLineIntersect(rLine, bLine)
     drawnow
     pause
 end
 
 court = 0;
-% save(['src\cache\' name '_courtDetect.mat'], 'court');
+% save(['src/cache/' name '_courtDetect.mat'], 'court');
 
 end
 
