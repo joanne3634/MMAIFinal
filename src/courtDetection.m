@@ -1,5 +1,6 @@
-function [ frameNum, court, topLeft, botLeft, topRight, botRight ] = courtDetection( fileName, frame )
+function [ frameNum, court, topLeft, botLeft, topRight, botRight, lineAngle ] = courtDetection( fileName, frame )
 
+disp('Begin court detection ... ');
 [~, name] = fileparts(fileName);
 
 if(exist(['src/cache/' name '_courtDetect.mat'], 'file'))
@@ -26,24 +27,30 @@ topLeft = zeros(frameNum,2);
 botLeft = zeros(frameNum,2);
 topRight = zeros(frameNum,2);
 botRight = zeros(frameNum,2);
+lineAngle = cell(1,frameNum);
 if(exist('frame','var'))
     for i = 1 : frameNum
-        [court{i}, topLeft(i,:), botLeft(i,:), topRight(i,:), botRight(i,:)] = courtSub(videoFrames(:,:,:,frame(i)), courtPt);
+        [court{i}, topLeft(i,:), botLeft(i,:), topRight(i,:), botRight(i,:), lineAngle{i}] = courtSub(videoFrames(:,:,:,frame(i)), courtPt);
     end
 else
     for i = 1 : frameNum
-        [court{i}, topLeft(i,:), botLeft(i,:), topRight(i,:), botRight(i,:)] = courtSub(videoFrames(:,:,:,i), courtPt);
+        [court{i}, topLeft(i,:), botLeft(i,:), topRight(i,:), botRight(i,:), lineAngle{i}] = courtSub(videoFrames(:,:,:,i), courtPt);
     end
 end
 % save(['src/cache/' name '_courtDetect.mat'], 'court');
+disp('Court detection complete.');
 
 end
 
-function [ court, topLeft, botLeft, topRight, botRight ]= courtSub ( videoFrame, courtPt )
+function [ court, topLeft, botLeft, topRight, botRight, lineAngle ] = courtSub ( videoFrame, courtPt )
     l = whitePixelDetection(videoFrame);
     [h, theta, rho] = hough(l);
     peaks = houghpeaks(h, 10, 'Threshold', 0.2*max(h(:)), 'NHoodSize', [ceil(size(h,1)/100)+1 ceil(size(h,2)/100)+1]);
     lines = houghlines(l, theta, rho, peaks);
+    lineAngle = [];
+    for j = 1 : size(lines,2)
+        lineAngle = [lineAngle lines(j).theta];
+    end
     verLines = {};
     horLines = {};
     for j = 1 : size(lines,2)

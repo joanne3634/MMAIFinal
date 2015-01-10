@@ -37,16 +37,14 @@ for idx = 1 : size(frameIdx,2)
     %translate to HSV of spilt court
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     HSV = rgb2hsv(courtDownHalf);
-    H = HSV(:,:,1)
-    pause
+    H = HSV(:,:,1);
     S = HSV(:,:,2);
     V = HSV(:,:,3);
     Voriginal = HSV(:,:,3);
 
     %quntize and count
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    [QframeDownHalfH,~] = quntize(H,12)
-    pause
+    [QframeDownHalfH,~] = quntize(H,12);
     [QframeDownHalfV,~] = quntize(V,12);
 
     YM=mean(QframeDownHalfH);

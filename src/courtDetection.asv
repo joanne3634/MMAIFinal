@@ -1,0 +1,95 @@
+function [ frameNum, court, topLeft, botLeft, topRight, botRight ] = courtDetection( fileName, frame )
+
+disp('Begin court detection ... ');
+[~, name] = fileparts(fileName);
+
+if(exist(['src/cache/' name '_courtDetect.mat'], 'file'))
+    load(['src/cache/' name '_courtDetect.mat']);
+    return;
+end
+
+if(exist(['src/cache/' name '_frame.mat'], 'file'))
+    load(['src/cache/' name '_frame.mat']);
+else
+    videoObj = VideoReader(['video/' fileName]);
+    videoFrames = read(videoObj);
+    save(['src/cache/' name '_frame.mat'], 'videoFrames', '-v7.3');
+end
+
+load('src\cache\courtPt.mat');
+if(exist('frame','var'))
+    frameNum = size(frame,2);
+else
+    frameNum = size(videoFrames,4);
+end
+court = cell(1,frameNum);
+topLeft = zeros(frameNum,2);
+botLeft = zeros(frameNum,2);
+topRight = zeros(frameNum,2);
+botRight = zeros(frameNum,2);
+courtLine = cell(1,frameNum);
+if(exist('frame','var'))
+    for i = 1 : frameNum
+        [court{i}, topLeft(i,:), botLeft(i,:), topRight(i,:), botRight(i,:), courtLine{i}] = courtSub(videoFrames(:,:,:,frame(i)), courtPt);
+    end
+else
+    for i = 1 : frameNum
+        [court{i}, topLeft(i,:), botLeft(i,:), topRight(i,:), botRight(i,:), courtLine{i}] = courtSub(videoFrames(:,:,:,i), courtPt);
+    end
+end
+% save(['src/cache/' name '_courtDetect.mat'], 'court');
+disp('Court detection complete.');
+
+end
+
+function [ court, topLeft, botLeft, topRight, botRight, courtLine ] = courtSub ( videoFrame, courtPt )
+    courtLine = whitePixelDetection(videoFrame);
+    [h, theta, rho] = hough(courtLine);
+    peaks = houghpeaks(h, 10, 'Threshold', 0.2*max(h(:)), 'NHoodSize', [ceil(size(h,1)/100)+1 ceil(size(h,2)/100)+1]);
+    lines = houghlines(courtLine, theta, rho, peaks);
+    verLines = {};
+    horLines = {};
+    for j = 1 : size(lines,2)
+        if(abs(lines(j).theta)<45)
+            verLines = [verLines lines(j)];
+        else
+            horLines = [horLines lines(j)];
+        end
+    end
+    lx = inf;
+    rx = -inf;
+    for j = 1 : size(verLines,2)
+        tmp = (verLines{j}.rho - sin(verLines{j}.theta*pi/180)*(size(courtLine,1)/2)) / cos(verLines{j}.theta*pi/180);
+        if(tmp < lx)
+            lLine = verLines{j};
+            lx = tmp;
+        end
+        if(tmp > rx)
+            rLine = verLines{j};
+            rx = tmp;
+        end
+    end
+    ty = -inf;
+    by = inf;
+    for j = 1 : size(horLines,2)
+        if(horLines{j}.rho < 0)
+            if(horLines{j}.rho > ty)
+                tLine = horLines{j};
+                ty = horLines{j}.rho;
+            end
+            if(horLines{j}.rho < by)
+                bLine = horLines{j};
+                by = horLines{j}.rho;
+            end
+        end
+    end
+    lt = houghLineIntersect(lLine, tLine)';
+    rt = houghLineIntersect(rLine, tLine)';
+    lb = houghLineIntersect(lLine, bLine)';
+    rb = houghLineIntersect(rLine, bLine)';
+    court = squrMap([courtPt(21,:);courtPt(1,:);courtPt(5,:);courtPt(25,:)], [lb;lt;rt;rb], courtPt);
+    topLeft = court(1,:);
+    botLeft = court(21,:);
+    topRight = court(5,:);
+    botRight = court(25,:);
+end
