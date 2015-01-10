@@ -1,51 +1,46 @@
-function [V,vColorHistogram,threshold] = count_HSV( img )
-%COUNT_HSV Summary of this function goes here
-%   Detailed explanation goes here
-RGB = imread(img);
-HSV = rgb2hsv(RGB);
-V = HSV(:,:,3);
-[rows, cols, ~]  = size(RGB) ;
+function [RGB,V] = count_HSV(VideofileName,Threshold,numberOfFrame)
+
+VThreshold = Threshold;
 numberOfLevelsForV = 256;
+
+%read the frame from video
+xyloObj = VideoReader(VideofileName);
+rows = xyloObj.Height;
+cols = xyloObj.Width;
+RGB = read(xyloObj,numberOfFrame);
+
+%trans to HSV
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HSV = rgb2hsv(RGB);
+H = HSV(:,:,1);
+S = HSV(:,:,2);
+V = HSV(:,:,3);
+Voriginal = HSV(:,:,3);
+
+%show the image of value(hsv)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+figure,imshow(RGB);title('Image');
+figure,imshow(H);title('H');
+%figure,imshow(S);title('S');
+figure,imshow(Voriginal);title('V');
+
+%count HSV
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+[qValueForEveryPixel,everyLavelValue]=quntize(V,256);
+everyLavelValue = everyLavelValue/sum(everyLavelValue);
 maxValueForV = max(V(:));
-%show the image of V-value(hsv)
-figure,imshow(V)
-figure,imhist(V);title('V分量直方?');
-
-count = 1;
-quantizedValueForV=zeros(rows, cols);
-index = zeros(rows*cols,1);
-for row = 1:rows
-    for col = 1 :cols
-        quantizedValueForV(row, col) = ceil(numberOfLevelsForV * V(row, col)/maxValueForV);
-        
-        % keep indexes where 1 should be put in matrix hsvHist
-        index(count,1) = quantizedValueForV(row, col);
-        count = count+1;
-    end
-end
-vColorHistogram=zeros(numberOfLevelsForV,1);
-for row = 1:size(index,1)
-    if (index(row, 1) == 0)
-        continue;
-    end
-    vColorHistogram(index(row, 1)) =vColorHistogram((index(row, 1))) + 1;
-end
-
-vColorHistogram = vColorHistogram/sum(vColorHistogram);
-
 for i=1:numberOfLevelsForV
     
-    if (vColorHistogram(i,1) > 0.005)
-       vColorHistogram(i,1) = vColorHistogram(i,1);
+    if (everyLavelValue(i,1) > VThreshold)
+       everyLavelValue(i,1) = everyLavelValue(i,1);
     else
-       vColorHistogram(i,1)=0;
+       everyLavelValue(i,1)=0;
     end
     %fprintf ('Number %d :%d\n',i,vColorHistogram(i,1))
 end
-threshold = 0;
 thres = 0;
 for i=(numberOfLevelsForV:-1:1)
-    if (vColorHistogram(i,1) == 0)
+    if (everyLavelValue(i,1) == 0)
         continue;
     else
        %fprintf ('Number %d :%d\n',i,vColorHistogram(i,1))
@@ -53,20 +48,16 @@ for i=(numberOfLevelsForV:-1:1)
        break;
     end
 end
-
 threshold=(thres*maxValueForV/numberOfLevelsForV);
-
 for row = 1:rows
     for col = 1 :cols
-        if (V(row, col)>0.5898)
+        if (V(row, col)>threshold)
             continue;
         else
             V(row,col) = 0;
         end
     end
 end
-
-figure,imshow(V)
-figure,imhist(V);title('V分量直方?');
+%figure,imshow(V);title('挑選過後');
 end
 

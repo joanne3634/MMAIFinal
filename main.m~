@@ -1,0 +1,8 @@
+clc;
+clear all;
+close all;
+
+addpath('src\');
+[ courtDownHalf ] = playerTrack( VideofileName,numberOfFrame ,lt,rt,lb,rb)
+[courtDownHalf]=playerTrack(frame,lt,rt,lb,rb)
+
