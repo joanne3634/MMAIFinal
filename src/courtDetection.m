@@ -15,31 +15,35 @@ else
     save(['src/cache/' name '_frame.mat'], 'videoFrames', '-v7.3');
 end
 
-% close all
-fig = figure;
-frameNum = size(videoFrames,4);
+load('src\cache\courtPt.mat');
+if(exist('frame','var'))
+    frameNum = size(frame,2);
+else
+    frameNum = size(videoFrames,4);
+end
 court = cell(1,frameNum);
 topLeft = zeros(frameNum,2);
 botLeft = zeros(frameNum,2);
 topRight = zeros(frameNum,2);
 botRight = zeros(frameNum,2);
 if(exist('frame','var'))
-    beginFrame = frame;
-    endFrame = frame;
+    for i = 1 : frameNum
+        [court{i}, topLeft(i,:), botLeft(i,:), topRight(i,:), botRight(i,:)] = courtSub(videoFrames(:,:,:,frame(i)), courtPt);
+    end
 else
-    beginFrame = 1;
-    endFrame = frameNum;
+    for i = 1 : frameNum
+        [court{i}, topLeft(i,:), botLeft(i,:), topRight(i,:), botRight(i,:)] = courtSub(videoFrames(:,:,:,i), courtPt);
+    end
 end
-for i = beginFrame : endFrame
-    i
-    l = whitePixelDetection(videoFrames(:,:,:,i));
-%     image(l*255);
-%     pause
+% save(['src/cache/' name '_courtDetect.mat'], 'court');
+
+end
+
+function [ court, topLeft, botLeft, topRight, botRight ]= courtSub ( videoFrame, courtPt )
+    l = whitePixelDetection(videoFrame);
     [h, theta, rho] = hough(l);
     peaks = houghpeaks(h, 10, 'Threshold', 0.2*max(h(:)), 'NHoodSize', [ceil(size(h,1)/100)+1 ceil(size(h,2)/100)+1]);
-%     size(peaks)
     lines = houghlines(l, theta, rho, peaks);
-%     clf(fig);
     verLines = {};
     horLines = {};
     for j = 1 : size(lines,2)
@@ -48,9 +52,6 @@ for i = beginFrame : endFrame
         else
             horLines = [horLines lines(j)];
         end
-%         line([lines(j).point1(1) lines(j).point2(1)], [lines(j).point1(2) lines(j).point2(2)]);
-%         lines(j).rho
-%         pause
     end
     lx = inf;
     rx = -inf;
@@ -67,7 +68,6 @@ for i = beginFrame : endFrame
     end
     ty = -inf;
     by = inf;
-%     size(horLines,2)
     for j = 1 : size(horLines,2)
         if(horLines{j}.rho < 0)
             if(horLines{j}.rho > ty)
@@ -80,22 +80,13 @@ for i = beginFrame : endFrame
             end
         end
     end
-%     line([lLine.point1(1) lLine.point2(1)], [lLine.point1(2) lLine.point2(2)]);
-%     line([rLine.point1(1) rLine.point2(1)], [rLine.point1(2) rLine.point2(2)]);
-%     line([tLine.point1(1) tLine.point2(1)], [tLine.point1(2) tLine.point2(2)]);
-%     line([bLine.point1(1) bLine.point2(1)], [bLine.point1(2) bLine.point2(2)]);
     lt = houghLineIntersect(lLine, tLine)';
     rt = houghLineIntersect(rLine, tLine)';
     lb = houghLineIntersect(lLine, bLine)';
     rb = houghLineIntersect(rLine, bLine)';
-    load('src\cache\courtPt.mat');
-    court{i} = squrMap([courtPt(21,:);courtPt(1,:);courtPt(5,:);courtPt(25,:)], [lb;lt;rt;rb], courtPt);
-    topLeft(i,:) = court{i}(1,:);
-    botLeft = court{i}(21,:);
-    topRight = court{i}(5,:);
-    botRight = court{i}(25,:);
+    court = squrMap([courtPt(21,:);courtPt(1,:);courtPt(5,:);courtPt(25,:)], [lb;lt;rt;rb], courtPt);
+    topLeft = court(1,:);
+    botLeft = court(21,:);
+    topRight = court(5,:);
+    botRight = court(25,:);
 end
-% save(['src/cache/' name '_courtDetect.mat'], 'court');
-
-end
-
