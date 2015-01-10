@@ -1,0 +1,69 @@
+function [ courtDownHalf ] = playerTrack( VideofileName,numberOfFrame ,lt,rt,lb,rb)
+%read the frame from video
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+xyloObj = VideoReader(VideofileName);
+rows = xyloObj.Height;
+cols = xyloObj.Width;
+RGB = read(xyloObj,numberOfFrame);
+
+%trans to HSV
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HSV = rgb2hsv(RGB);
+H = HSV(:,:,1);
+S = HSV(:,:,2);
+V = HSV(:,:,3);
+Voriginal = HSV(:,:,3);
+
+%spilt court
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+figure,imshow(RGB);title('球場');
+for i=(int16(lb(2,1))-(rows/4)):int16(lb(2,1))
+    for j=int16(lb(1,1)):int16(rb(1,1))
+        courtDownHalf(i,j,:)=RGB(i,j,:);
+    end
+end
+
+for i=(int16(lb(2,1))-(rows/4)):rows
+    for j=1:cols
+        frameDownHalf(i,j,:)=RGB(i,j,1,:);
+    end
+end
+subplot(1,3,1),imshow(RGB);title('Image');
+subplot(1,3,2),imshow(frameDownHalf);title('Image下半');
+subplot(1,3,3),imshow(courtDownHalf);title('球場下半');
+
+%translate to HSV of spilt court
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HSV = rgb2hsv(frameDownHalf);
+H = HSV(:,:,1);
+S = HSV(:,:,2);
+V = HSV(:,:,3);
+Voriginal = HSV(:,:,3);
+
+%quntize and count
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+[QframeDownHalfH,~] = quntize(H,12);
+[QframeDownHalfV,~] = quntize(V,12);
+
+YM=mean(QframeDownHalfH);
+YV=var(double(QframeDownHalfH(:)));
+VM=mean(QframeDownHalfV);
+VV=var(double(QframeDownHalfV(:)));
+
+xY=(0.5/12+VV^2)/(VV^2)
+xV=(0.5/12+VV^2)/(VV^2)
+
+for i=(int16(lb(2,1))-(rows/4)):rows
+   for j=1:cols
+       if abs(double(QframeDownHalfH(i,j))-double(YM)) > double(x*YV^2) | ...
+               abs(double(QframeDownHalfH(i,j))-double(YM)) > double(x*YV^2) |
+           QframeDownHalfH(i,j) =256;
+       else
+           QframeDownHalfH(i,j) =0;
+   end
+   end
+end
+imshow(QframeDownHalfH)
+%figure,imshow(HSV)
+%figure,imhist(HSV);title('V分量直方?');
+
