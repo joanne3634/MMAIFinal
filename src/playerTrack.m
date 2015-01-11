@@ -1,69 +1,176 @@
-function [ courtDownHalf ] = playerTrack( VideofileName,numberOfFrame ,lt,rt,lb,rb)
+function [PlayInUpCol,PlayInUpRow,PlayInDownCol,PlayInDownRow] = playerTrack( VideofileName,numberOfFrame ,lt,rt,lb,rb)
 %read the frame from video
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 xyloObj = VideoReader(VideofileName);
 rows = xyloObj.Height;
 cols = xyloObj.Width;
 RGB = read(xyloObj,numberOfFrame);
-
-%trans to HSV
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-HSV = rgb2hsv(RGB);
-H = HSV(:,:,1);
-S = HSV(:,:,2);
-V = HSV(:,:,3);
-Voriginal = HSV(:,:,3);
-
 %spilt court
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-figure,imshow(RGB);title('球場');
-for i=(int16(lb(2,1))-(rows/4)):int16(lb(2,1))
-    for j=int16(lb(1,1)):int16(rb(1,1))
-        courtDownHalf(i,j,:)=RGB(i,j,:);
-    end
-end
-
+% for i=(int16(lb(2,1))-(rows/4)):rows
+%       for j=int16(lb(1,1)):int16(rb(1,1))
+%           courtDownHalf(i-(int16(lb(2,1))-(rows/4))+1,j-int16(lb(1,1))+1,:)=RGB(i,j,:);
+%       end
+% end
+%i=centerline to rows
 for i=(int16(lb(2,1))-(rows/4)):rows
     for j=1:cols
-        frameDownHalf(i,j,:)=RGB(i,j,:);
+        frameDownHalf(i-(int16(lb(2,1))-(rows/4))+1,j,:)=RGB(i,j,:);
     end
 end
-subplot(1,3,1),imshow(RGB);title('Image');
-subplot(1,3,2),imshow(frameDownHalf);title('Image下半');
-subplot(1,3,3),imshow(courtDownHalf);title('球場下半');
-
-%translate to HSV of spilt court
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-HSV = rgb2hsv(courtDownHalf);
-H = HSV(:,:,1);
-S = HSV(:,:,2);
-V = HSV(:,:,3);
-Voriginal = HSV(:,:,3);
-
-%quntize and count
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[QframeDownHalfH,~] = quntize(H,12);
-[QframeDownHalfV,~] = quntize(V,12);
-
-YM=mean(QframeDownHalfH);
-YV=var(double(QframeDownHalfH(:)));
-VM=mean(QframeDownHalfV);
-VV=var(double(QframeDownHalfV(:)));
-
-xY=(0.5/12+VV^2)/(VV^2);
-xV=(0.5/12+VV^2)/(VV^2);
-
-for i=(int16(lb(2,1))-(rows/4)):rows
-   for j=1:cols
-       if (abs(double(H(i,j))-double(YM)) > double(xY*YV^2)) | ...
-               (abs(double(V(i,j))-double(VM)) > double(xV*VV^2))
-           RGB(i,j) =255;
-       else
-           RGB(i,j) =0;
-   end
-   end
+%i=1 to center line 
+for i=1:int16(lt(2,1))+(rows/12)
+    for j=1:cols
+        frameUpHalf(i,j,:)=RGB(i,j,:);
+    end
 end
-figure,imshow(RGB)
-%figure,imshow(HSV)
-%figure,imhist(HSV);title('V分量直方?');
+% figure
+% subplot(1,3,1),imshow(RGB);title('Image')
+% subplot(1,3,2),imshow(frameDownHalf);title('Image下半')
+% subplot(1,3,3),imshow(frameUpHalf);title('Image上半')
+%court quntize and count
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% HSVcourt = rgb2hsv(courtDownHalf);
+% Hcourt = HSVcourt(:,:,1);
+% Vcourt = HSVcourt(:,:,3);
+% [QcourtDownHalfH,~] = quntize(Hcourt,6);
+% [QcourtDownHalfV,~] = quntize(Vcourt,6);
+% HcourtMean=sum(sum(double(QcourtDownHalfH)))/(rows*cols);
+% HcourtVar=var(double(QcourtDownHalfH(:)));
+% VcourtMean=sum(sum(double(QcourtDownHalfV)))/(rows*cols);
+% VcourtVar=var(double(QcourtDownHalfV(:)));
+% Hcourtalpha=(0.5/6+HcourtVar)/(HcourtVar);
+% Vcourtalpha=(0.5/6+VcourtVar)/(VcourtVar);
+% for i=1:rows-(int16(lb(2,1))-(rows/4))
+%     for j=1:int16(rb(1,1))-int16(rb(1,1))
+%         if (abs(double(QcourtDownHalfH(i,j))-HcourtMean) > double(sqrt(HcourtVar)) || ...
+%                 abs(double(QcourtDownHalfV(i,j))-double(VcourtMean)) > double(sqrt(VcourtVar)))
+%             courtYesOrNot(i,j,:)=255;
+%         else            
+%             courtYesOrNot(i,j,:)=0;
+%         end
+%     end
+% end
+%Downframe quntize and count
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HSVDownframe = rgb2hsv(frameDownHalf);
+HDownframe = HSVDownframe(:,:,1);
+VDownframe = HSVDownframe(:,:,3);
+[QframeDownHalfH,~] = quntize(HDownframe,12);
+[QframeDownHalfV,~] = quntize(VDownframe,12);
+HframeDownMean=sum(sum(double(QframeDownHalfH)))/(rows*cols);
+HframeDownVar=var(double(QframeDownHalfH(:)));
+VframeDownMean=sum(sum(double(QframeDownHalfV)))/(rows*cols);
+VframeDownVar=var(double(QframeDownHalfV(:)));
+HframeDownAlpha=(0.5/6+HframeDownVar)/(HframeDownVar);
+VframeDownAlpha=(0.5/6+VframeDownVar)/(VframeDownVar);
+%for i=1 to height of downHalf
+for i=1:rows-(int16(lb(2,1))-(rows/4))+1
+    for j=1:cols
+        if (abs(double(QframeDownHalfH(i,j))-HframeDownMean) > double(sqrt(HframeDownVar)) || ...
+                abs(double(QframeDownHalfV(i,j))-double(VframeDownMean)) > double(sqrt(VframeDownVar)))
+            frameDownYesOrNot(i,j,:) = 255;
+        else            
+            frameDownYesOrNot(i,j,:) = 0;
+        end
+    end
+end
+%Upframe quntize and count
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+HSVUpframe = rgb2hsv(frameUpHalf);
+HUpframe = HSVUpframe(:,:,1);
+VUpframe = HSVUpframe(:,:,3);
+[QframeUpHalfH,~] = quntize(HUpframe,12);
+[QframeUpHalfV,~] = quntize(VUpframe,6);
+HframeUpMean=sum(sum(double(QframeUpHalfH)))/(rows*cols);
+HframeUpVar=var(double(QframeUpHalfH(:)));
+VframeUpMean=sum(sum(double(QframeUpHalfV)))/(rows*cols);
+VframeUpVar=var(double(QframeUpHalfV(:)));
+Hcourtalpha=(0.5/6+HframeUpVar)/(HframeUpVar);
+Vcourtalpha=(0.5/6+VframeUpVar)/(VframeUpVar);
+%for i=1 to height of UpHalf
+for i=1:int16(lt(2,1))+(rows/12)
+     for j=1:cols
+         if (abs(double(QframeUpHalfH(i,j))-HframeUpMean) > double(sqrt(HframeUpVar)) || ...
+                 abs(double(QframeUpHalfV(i,j))-double(VframeUpMean)) > double(sqrt(VframeUpVar)))
+             frameUpYesOrNot(i,j,:)=255;
+         else            
+             frameUpYesOrNot(i,j,:)=0;
+         end
+     end
+end
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+[fDownrows,fDowncols]=size(frameDownYesOrNot);
+ for i=1:fDownrows
+        for j=1:fDowncols
+            %if i between center line to lb
+            if(i<int16(lb(2,1))-(rows-fDownrows))
+                %if j between lb to rb
+                if(j>int16(lb(1,1))+int16(fDowncols/9) && j<int16(rb(1,1))-int16(fDowncols/9))
+                    frameDownYesOrNot1(i,j,:)=frameDownYesOrNot(i,j,:);
+                else
+                    frameDownYesOrNot1(i,j,:)=255;
+                end
+            else
+                frameDownYesOrNot1(i,j,:)=255;
+            end
+       end
+end
+Downcount=0;
+sumDowni=0;
+sumDownj=0;
+PlayInDownXY=zeros(1000,2);
+for i=1:fDownrows
+     for j=1:fDowncols
+         if(frameDownYesOrNot1(i,j)==0)
+             Downcount=Downcount+1;
+             sumDowni=sumDowni+i;
+             sumDownj=sumDownj+j;
+             PlayInDownXY(Downcount,1)=i;
+             PlayInDownXY(Downcount,2)=j;
+         end
+     end
+end
+PlayInDownRow=ceil(double(sumDowni/Downcount)+(rows-fDownrows));
+PlayInDownCol=ceil(double(sumDownj/Downcount));
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+[fUprows,fUpcols]=size(frameUpYesOrNot);
+ for i=1:fUprows
+        for j=1:fUpcols
+            %if i between lt to fUprows
+            if(i>int16(lt(2,1))-int16(fUprows/5) && i<int16(lt(2,1)))
+                %if j between lt to rt
+                if(j>int16(lt(1,1))-int16(fUpcols/10) && j<int16(rt(1,1))+int16(fUpcols/10))
+                    frameUpYesOrNot1(i,j,:)=frameUpYesOrNot(i,j,:);
+                else
+                    frameUpYesOrNot1(i,j,:)=255;
+                end
+            else
+                frameUpYesOrNot1(i,j,:)=255;
+            end
+       end
+end
+count=0;
+sumi=0;
+sumj=0;
+PlayInUpXY=zeros(1000,2);
+for i=1:fUprows
+     for j=1:fUpcols
+         if(frameUpYesOrNot1(i,j)==0)
+             count=count+1;
+             sumi=sumi+i;
+             sumj=sumj+j;
+             PlayInUpXY(count,1)=i;
+             PlayInUpXY(count,2)=j;
+         end
+     end
+end
+PlayInUpRow=ceil(double(sumi/count));
+PlayInUpCol=ceil(double(sumj/count));
 
+figure,image(RGB)
+hold on;
+plot(PlayInDownCol,PlayInDownRow,'r.','MarkerSize',20)
+plot(PlayInUpCol,PlayInUpRow,'r.','MarkerSize',20)
+
+end

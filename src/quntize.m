@@ -13,6 +13,9 @@ for row = 1:rows
         
         % keep indexes where 1 should be put in matrix hsvHist
         index(count,1) = qValueForEveryPixel(row, col);
+        if index(count,1)==numberOfLevels+1
+            index(count,1)=index(count,1)-1;
+        end
         count = count+1;
     end
 end
@@ -21,7 +24,7 @@ for row = 1:size(index,1)
     if (index(row, 1) == 0)
         continue;
     end
-    everyLavelValue(index(row, 1)) =everyLavelValue((index(row, 1))) + 1;
+    everyLavelValue(index(row, 1)) = everyLavelValue((index(row, 1))) + 1;
 end
 
 end

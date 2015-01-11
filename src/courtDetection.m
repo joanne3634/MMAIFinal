@@ -1,4 +1,4 @@
-function [numberOfFrame,lt,rt,lb,rb ] = courtDetection( fileName )
+function [numberOfFrame,lt,rt,lb,rb ] = courtDetection( fileName,numberOfFrame )
 
 [~, name] = fileparts(fileName);
 
@@ -18,7 +18,7 @@ end
 close all
 fig = figure;
 %for i = 204 : size(videoFrames,4)
-    i=204;
+    i=numberOfFrame;
     numberOfFrame=i;
     z=videoFrames(:,:,:,i);
     l = whitePixelDetection(videoFrames(:,:,:,i));
