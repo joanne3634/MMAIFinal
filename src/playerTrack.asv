@@ -1,6 +1,5 @@
 function [PlayInUpCol, PlayInUpRow, PlayInDownCol, PlayInDownRow] = playerTrack( VideofileName, frame, lt, rt, lb, rb)
 
-disp('Begin player track ...');
 %read the frame from video
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 xyloObj = VideoReader(['video/' VideofileName]);
@@ -22,12 +21,12 @@ PlayInDownRow = zeros(RGB,2);
 if(exist('frame','var'))
     for i = 1 : numOfFrame
         [PlayInUpCol(i,:), PlayInUpRow(i,:), PlayInDownCol(i,:), PlayInDownRow(i,:)] = ...
-            playerTrackSub(RGB(:,:,:,frame(i)), rows, cols, lt(i,:)', rt(i,:)', lb(i,:)', rb(i,:)');
+            playerTrackSub(RGB(:,:,:,frame(i)), rows, cols, lt(i,:), rt(i,:), lb(i,:), rb(i,:));
     end
 else
     for i = 1 : numOfFrame
         [PlayInUpCol(i,:), PlayInUpRow(i,:), PlayInDownCol(i,:), PlayInDownRow(i,:)] = ...
-            playerTrackSub(RGB(:,:,:,i), rows, cols, lt(i,:)', rt(i,:)', lb(i,:)', rb(i,:)');
+            playerTrackSub(RGB(:,:,:,i), rows, cols, lt(i,:), rt(i,:), lb(i,:), rb(i,:));
     end
 end
 
@@ -166,6 +165,5 @@ for i=1:fUprows
 end
 PlayInUpRow=ceil(double(sumi/count));
 PlayInUpCol=ceil(double(sumj/count));
-disp('Player track done.');
 
 end
