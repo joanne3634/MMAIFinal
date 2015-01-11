@@ -1,4 +1,4 @@
-function [ frameNum, court, topLeft, botLeft, topRight, botRight ] = courtDetection( fileName, frame )
+function [ frameNum, court, topLeft, botLeft, topRight, botRight ] = courtDetection( fileName, frame, videoFrames )
 
 disp('Begin court detection ... ');
 [~, name] = fileparts(fileName);
@@ -8,12 +8,14 @@ if(exist(['src/cache/' name '_courtDetect.mat'], 'file'))
     return;
 end
 
-if(exist(['src/cache/' name '_frame.mat'], 'file'))
-    load(['src/cache/' name '_frame.mat']);
-else
-    videoObj = VideoReader(['video/' fileName]);
-    videoFrames = read(videoObj);
-    save(['src/cache/' name '_frame.mat'], 'videoFrames', '-v7.3');
+if(~exist('videoFrames','var'))
+    if(exist(['src/cache/' name '_frame.mat'], 'file'))
+        load(['src/cache/' name '_frame.mat']);
+    else
+        videoObj = VideoReader(['video/' fileName]);
+        videoFrames = read(videoObj);
+        save(['src/cache/' name '_frame.mat'], 'videoFrames', '-v7.3');
+    end
 end
 
 load('src\cache\courtPt.mat');
