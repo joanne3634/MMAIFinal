@@ -28,11 +28,12 @@ imshow(grayImg2)
 diff = zeros(size(grayImg1));
 for i = 1 : size(grayImg1,1)
     for j = 1 : size(grayImg1,2)
-        diff(i,j) = abs(grayImg1(i,j)-grayImg2(i,j));
+        diff
     end
 end
+
 figure
-imshow(diff)
+
 
 % gradiImg = zeros(size(grayImg));
 % for i = floor(topLeft(1)) : floor(botLeft(1))
