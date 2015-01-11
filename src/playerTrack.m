@@ -3,10 +3,17 @@ function [PlayInUpCol, PlayInUpRow, PlayInDownCol, PlayInDownRow] = playerTrack(
 disp('Begin player track ...');
 %read the frame from video
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-xyloObj = VideoReader(['video/' VideofileName]);
-rows = xyloObj.Height;
-cols = xyloObj.Width;
-RGB = read(xyloObj);
+[~, name] = fileparts(VideofileName);
+if(exist(['src/cache/' name '_frame.mat'], 'file'))
+    load(['src/cache/' name '_frame.mat']);
+else
+    videoObj = VideoReader(['video/' VideofileName]);
+    videoFrames = read(videoObj);
+    save(['src/cache/' name '_frame.mat'], 'videoFrames', '-v7.3');
+end
+RGB = videoFrames;
+rows = size(RGB,1);
+cols = size(RGB,2);
 
 if(exist('frame','var'))
     numOfFrame = size(frame,2);
@@ -14,10 +21,10 @@ else
     numOfFrame = size(RGB,4);
 end
 
-PlayInUpCol = zeros(RGB,2);
-PlayInUpRow = zeros(RGB,2);
-PlayInDownCol = zeros(RGB,2);
-PlayInDownRow = zeros(RGB,2);
+PlayInUpCol = zeros(numOfFrame,2);
+PlayInUpRow = zeros(numOfFrame,2);
+PlayInDownCol = zeros(numOfFrame,2);
+PlayInDownRow = zeros(numOfFrame,2);
 
 if(exist('frame','var'))
     for i = 1 : numOfFrame
@@ -30,6 +37,7 @@ else
             playerTrackSub(RGB(:,:,:,i), rows, cols, lt(i,:)', rt(i,:)', lb(i,:)', rb(i,:)');
     end
 end
+disp('Player track done.');
 
 end
 
@@ -166,6 +174,5 @@ for i=1:fUprows
 end
 PlayInUpRow=ceil(double(sumi/count));
 PlayInUpCol=ceil(double(sumj/count));
-disp('Player track done.');
 
 end
