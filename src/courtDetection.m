@@ -5,6 +5,7 @@ disp('Begin court detection ... ');
 
 if(exist(['src/cache/' name '_courtDetect.mat'], 'file'))
     load(['src/cache/' name '_courtDetect.mat']);
+    disp('Court detection complete.');
     return;
 end
 
@@ -31,14 +32,16 @@ topRight = zeros(frameNum,2);
 botRight = zeros(frameNum,2);
 if(exist('frame','var'))
     for i = 1 : frameNum
+        disp([num2str(i) ' / ' num2str(frameNum)]);
         [court{i}, topLeft(i,:), botLeft(i,:), topRight(i,:), botRight(i,:)] = courtSub(videoFrames(:,:,:,frame(i)), courtPt);
     end
 else
     for i = 1 : frameNum
+        disp([num2str(i) ' / ' num2str(frameNum)]);
         [court{i}, topLeft(i,:), botLeft(i,:), topRight(i,:), botRight(i,:)] = courtSub(videoFrames(:,:,:,i), courtPt);
     end
 end
-% save(['src/cache/' name '_courtDetect.mat'], 'court');
+save(['src/cache/' name '_courtDetect.mat'], 'frameNum', 'court', 'topLeft', 'botLeft', 'topRight', 'botRight');
 disp('Court detection complete.');
 
 end
@@ -56,6 +59,14 @@ function [ court, topLeft, botLeft, topRight, botRight ] = courtSub ( videoFrame
         else
             horLines = [horLines lines(j)];
         end
+    end
+    if(size(verLines,2) < 2 || size(horLines,2) < 2)
+        court = [];
+        topLeft = [0 0];
+        botLeft = [0 0];
+        topRight = [0 0];
+        botRight = [0 0];
+        return
     end
     lx = inf;
     rx = -inf;

@@ -1,0 +1,19 @@
+clc;
+% clear all;
+close all;
+
+addpath('src/');
+frameIdx = 200:400;
+[ frameNum, court, topLeft, botLeft, topRight, botRight ] = courtDetection('1.avi');
+[ UpPlayerCenter, DownPlayerCenter, UpPlayerPos, DownPlayerPos ] = playerTrack('1.avi', topLeft, topRight, botLeft, botRight);
+
+for i = 1 : frameNum
+    imshow(videoFrames(:,:,:,frameIdx(i)));
+    hold on
+    for j = 1 : 25
+        plot(court{i}(j,2),court{i}(j,1),'gx');
+    end
+    plot(UpPlayerCenter(i,2),UpPlayerCenter(i,1),'go');
+    plot(DownPlayerCenter(i,2),DownPlayerCenter(i,1),'go');
+    hold off
+end

@@ -5,6 +5,11 @@ disp('Begin player track ...');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [~, name] = fileparts(VideofileName);
 
+if(exist(['src/cache/' name '_playerTract.mat'], 'file'))
+    load(['src/cache/' name '_playerTract.mat']);
+    return;
+end
+
 if(~exist('videoFrames','var'))
     if(exist(['src/cache/' name '_frame.mat'], 'file'))
         load(['src/cache/' name '_frame.mat']);
@@ -29,11 +34,13 @@ DownPlayerPos = cell(1,numOfFrame);
 
 if(exist('frame','var'))
     for i = 1 : numOfFrame
+        disp([num2str(i) ' / ' num2str(numOfFrame)]);
         [UpPlayerCenter(i,:), DownPlayerCenter(i,:), UpPlayerPos{i}, DownPlayerPos{i}] = ...
             playerTrackSub(RGB(:,:,:,frame(i)), lt(i,:), rt(i,:), lb(i,:), rb(i,:));
     end
 else
     for i = 1 : numOfFrame
+        disp([num2str(i) ' / ' num2str(numOfFrame)]);
         [UpPlayerCenter(i,:), DownPlayerCenter(i,:), UpPlayerPos{i}, DownPlayerPos{i}] = ...
             playerTrackSub(RGB(:,:,:,i), lt(i,:), rt(i,:), lb(i,:), rb(i,:));
     end
@@ -54,16 +61,20 @@ frameDownHalf = RGB(lm(1):end,:,:);
 %Upframe quntize and count
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 upFramePos = highDiffPoint(frameUpHalf);
+% image(upFramePos*80)
+% pause
 
 %Downframe quntize and count
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 downFramePos = highDiffPoint(frameDownHalf);
+% image(downFramePos*80)
+% pause
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 offset = 10;
-x = [lt(2)-offset rt(2)+offset rm(2)+offset lm(2)-+offset];
+x = [lt(2)-offset rt(2)+offset rm(2)+offset lm(2)-offset];
 y = [lt(1)-offset rt(1)-offset rm(1) lm(1)];
-mask = poly2mask(x,y,size(upFramePos,2),size(upFramePos,1));
+mask = poly2mask(x,y,size(upFramePos,1),size(upFramePos,2));
 for i = 1 : size(upFramePos,1)
     for j = 1 : size(upFramePos,2)
         if(mask(i,j) == 0)
@@ -71,11 +82,13 @@ for i = 1 : size(upFramePos,1)
         end
     end
 end
+% image(upFramePos*80)
+% pause
 % upFramePos(floor(size(upFramePos,1)/2):end,1:lm(2)) = ...
 %     zeros(size(upFramePos,1)-floor(size(upFramePos,1)/2)+1,lm(2));
-x = [lt(2) rt(2) rt(2) lt(2)];
-y = [1 1 rb(1)-lm(1) lb(1)-lm(1)];
-mask = poly2mask(x,y,size(downFramePos,2),size(downFramePos,1));
+x = [lm(2)-offset rm(2)+offset rb(2)+offset lb(2)-offset];
+y = [1 1 rb(1)+offset-lm(1) lb(1)+offset-lm(1)];
+mask = poly2mask(x,y,size(downFramePos,1),size(downFramePos,2));
 for i = 1 : size(downFramePos,1)
     for j = 1 : size(downFramePos,2)
         if(mask(i,j) == 0)
@@ -83,6 +96,8 @@ for i = 1 : size(downFramePos,1)
         end
     end
 end
+% image(downFramePos*80)
+% pause
 % downFramePos(1:floor(size(downFramePos,1)/2),1:lm(2)) = ...
 %     zeros(floor(size(downFramePos,1)/2),lm(2));
 
@@ -109,9 +124,8 @@ for i = 1 : size(upFramePos,1)
         end
     end
 end
-UpPlayerCenter(1) = UpPlayerCenter(1)+floor(lt(1)*3/4);
 UpPlayerPos = zeros(size(RGB(:,:,1)));
-UpPlayerPos(floor(lt(1)*3/4):lm(1),:) = tUpPlayerPos;
+UpPlayerPos(1:lm(1),:) = tUpPlayerPos;
 
 rowSum = 0;
 rowCnt = 0;
@@ -138,7 +152,7 @@ for i = 1 : size(downFramePos,1)
 end
 DownPlayerCenter(1) = DownPlayerCenter(1)+lm(1);
 DownPlayerPos = zeros(size(RGB(:,:,1)));
-DownPlayerPos(lm(1):size(RGB,1)-floor((size(RGB,1)-lb(1))/2),:) = tDownPlayerPos;
+DownPlayerPos(lm(1):end,:) = tDownPlayerPos;
 
 end
 

@@ -1,9 +1,15 @@
-function [UpPlayerCenter, DownPlayerCenter, UpPlayerPos, DownPlayerPos] = playerTrack( VideofileName, frame, lt, rt, lb, rb, videoFrames)
+function [UpPlayerCenter, DownPlayerCenter, UpPlayerPos, DownPlayerPos] = playerTrack( VideofileName, lt, rt, lb, rb, frame, videoFrames)
 
 disp('Begin player track ...');
 %read the frame from video
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [~, name] = fileparts(VideofileName);
+
+if(exist(['src/cache/' name '_playerTract.mat'], 'file'))
+    load(['src/cache/' name '_playerTract.mat']);
+    disp('Player track done.');
+    return;
+end
 
 if(~exist('videoFrames','var'))
     if(exist(['src/cache/' name '_frame.mat'], 'file'))
@@ -29,25 +35,35 @@ DownPlayerPos = cell(1,numOfFrame);
 
 if(exist('frame','var'))
     for i = 1 : numOfFrame
+        disp([num2str(i) ' / ' num2str(numOfFrame)]);
         [UpPlayerCenter(i,:), DownPlayerCenter(i,:), UpPlayerPos{i}, DownPlayerPos{i}] = ...
             playerTrackSub(RGB(:,:,:,frame(i)), lt(i,:), rt(i,:), lb(i,:), rb(i,:));
     end
 else
     for i = 1 : numOfFrame
+        disp([num2str(i) ' / ' num2str(numOfFrame)]);
         [UpPlayerCenter(i,:), DownPlayerCenter(i,:), UpPlayerPos{i}, DownPlayerPos{i}] = ...
             playerTrackSub(RGB(:,:,:,i), lt(i,:), rt(i,:), lb(i,:), rb(i,:));
     end
 end
+save(['src/cache/' name '_playerTract.mat'], 'UpPlayerCenter', 'DownPlayerCenter', 'UpPlayerPos', 'DownPlayerPos');
 disp('Player track done.');
 
 end
 
 function [UpPlayerCenter, DownPlayerCenter, UpPlayerPos, DownPlayerPos] = playerTrackSub (RGB, lt, rt, lb, rb)
 
+if(lt(1) == 0)
+    UpPlayerCenter = [0 0];
+    DownPlayerCenter = [0 0];
+    UpPlayerPos = [];
+    DownPlayerPos = [];
+    return
+end
 %spilt court
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-lm = [floor((lt(1)+lb(1))/2) floor((lt(2)+lb(2))/2)];
-rm = [(rt(1)+rb(1))/2 (rt(2)+rb(2))/2];
+lm = [ceil((lt(1)+lb(1))/2) ceil((lt(2)+lb(2))/2)];
+rm = [ceil((rt(1)+rb(1))/2) ceil((rt(2)+rb(2))/2)];
 frameUpHalf = RGB(1:lm(1),:,:);
 frameDownHalf = RGB(lm(1):end,:,:);
 
@@ -60,8 +76,8 @@ upFramePos = highDiffPoint(frameUpHalf);
 %Downframe quntize and count
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 downFramePos = highDiffPoint(frameDownHalf);
-image(downFramePos*80)
-pause
+% image(downFramePos*80)
+% pause
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 offset = 10;
@@ -89,8 +105,8 @@ for i = 1 : size(downFramePos,1)
         end
     end
 end
-image(downFramePos*80)
-pause
+% image(downFramePos*80)
+% pause
 % downFramePos(1:floor(size(downFramePos,1)/2),1:lm(2)) = ...
 %     zeros(floor(size(downFramePos,1)/2),lm(2));
 
