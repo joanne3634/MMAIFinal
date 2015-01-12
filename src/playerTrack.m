@@ -77,10 +77,10 @@ upFramePos = highDiffPoint(frameUpHalf);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 downFramePos = highDiffPoint(frameDownHalf);
 % image(downFramePos*80)
-% pause
+% drawnow
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-offset = 10;
+offset = 0;
 x = [lt(2)-offset rt(2)+offset rm(2)+offset lm(2)-offset];
 y = [lt(1)-offset rt(1)-offset rm(1) lm(1)];
 mask = poly2mask(x,y,size(upFramePos,1),size(upFramePos,2));
@@ -135,6 +135,8 @@ for i = 1 : size(upFramePos,1)
 end
 UpPlayerPos = zeros(size(RGB(:,:,1)));
 UpPlayerPos(1:lm(1),:) = tUpPlayerPos;
+% image(UpPlayerPos*80)
+% drawnow
 
 rowSum = 0;
 rowCnt = 0;
@@ -162,6 +164,8 @@ end
 DownPlayerCenter(1) = DownPlayerCenter(1)+lm(1);
 DownPlayerPos = zeros(size(RGB(:,:,1)));
 DownPlayerPos(lm(1):end,:) = tDownPlayerPos;
+% image(DownPlayerPos*80)
+% drawnow
 
 end
 

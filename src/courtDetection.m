@@ -51,6 +51,14 @@ function [ court, topLeft, botLeft, topRight, botRight ] = courtSub ( videoFrame
     [h, theta, rho] = hough(l);
     peaks = houghpeaks(h, 10, 'Threshold', 0.2*max(h(:)), 'NHoodSize', [ceil(size(h,1)/100)+1 ceil(size(h,2)/100)+1]);
     lines = houghlines(l, theta, rho, peaks);
+    if(size(lines,2)<4)
+        court = [];
+        topLeft = [0 0];
+        botLeft = [0 0];
+        topRight = [0 0];
+        botRight = [0 0];
+        return
+    end
     verLines = {};
     horLines = {};
     for j = 1 : size(lines,2)
