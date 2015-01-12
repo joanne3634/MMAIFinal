@@ -3,15 +3,19 @@ clear all;
 close all;
 
 addpath('src/');
-frameIdx = 150:153;
-[ frameNum, court, topLeft, botLeft, topRight, botRight ] = courtDetection('1.avi',frameIdx);
+% frameIdx = 154:155;
+[ frameNum, court, topLeft, botLeft, topRight, botRight ] = courtDetection('1.avi');
 [ UpPlayerCenter, DownPlayerCenter, UpPlayerPos, DownPlayerPos ] = playerTrack('1.avi', topLeft, topRight, botLeft, botRight);
 
 load('src\cache\1_frame.mat');
 writerObj = VideoWriter('demo.avi');
 open(writerObj);
 for i = 1 : frameNum
-    imshow(videoFrames(:,:,:,frameIdx(i)));
+    if(exist('frameIdx','var'))
+        imshow(videoFrames(:,:,:,frameIdx(i)));
+    else
+        imshow(videoFrames(:,:,:,i));
+    end
     if(topLeft(i,1) ~= 0)
         hold on
         for j = 1 : 25

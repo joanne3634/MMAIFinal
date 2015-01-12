@@ -93,6 +93,13 @@ function [ court, topLeft, botLeft, topRight, botRight ] = courtSub ( videoFrame
                 bLine = horLines{j};
                 by = horLines{j}.rho;
             end
+        else
+            court = [];
+            topLeft = [0 0];
+            botLeft = [0 0];
+            topRight = [0 0];
+            botRight = [0 0];
+            return
         end
     end
     lt = houghLineIntersect(lLine, tLine)';
