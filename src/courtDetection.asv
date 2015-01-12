@@ -41,7 +41,7 @@ else
         [court{i}, topLeft(i,:), botLeft(i,:), topRight(i,:), botRight(i,:)] = courtSub(videoFrames(:,:,:,i), courtPt);
     end
 end
-save(['src/cache/' name '_courtDetect.mat'], 'frameNum', 'court', 'topLeft', 'botLeft', 'topRight', 'botRight');
+% save(['src/cache/' name '_courtDetect.mat'], 'frameNum', 'court', 'topLeft', 'botLeft', 'topRight', 'botRight');
 disp('Court detection complete.');
 
 end
@@ -50,7 +50,7 @@ function [ court, topLeft, botLeft, topRight, botRight ] = courtSub ( videoFrame
     l = whitePixelDetection(videoFrame);
     [h, theta, rho] = hough(l);
     peaks = houghpeaks(h, 10, 'Threshold', 0.2*max(h(:)), 'NHoodSize', [ceil(size(h,1)/100)+1 ceil(size(h,2)/100)+1]);
-    lines = houghlines(l, theta, rho, peaks);
+    lines = houghlines(l, theta, rho, peaks)
     verLines = {};
     horLines = {};
     for j = 1 : size(lines,2)
@@ -59,6 +59,14 @@ function [ court, topLeft, botLeft, topRight, botRight ] = courtSub ( videoFrame
         else
             horLines = [horLines lines(j)];
         end
+    end
+    if(size(verLines,2) < 2 || size(horLines,2) < 2)
+        court = [];
+        topLeft = [0 0];
+        botLeft = [0 0];
+        topRight = [0 0];
+        botRight = [0 0];
+        return
     end
     lx = inf;
     rx = -inf;
@@ -85,36 +93,19 @@ function [ court, topLeft, botLeft, topRight, botRight ] = courtSub ( videoFrame
                 bLine = horLines{j};
                 by = horLines{j}.rho;
             end
+        else
+            court = [];
+            topLeft = [0 0];
+            botLeft = [0 0];
+            topRight = [0 0];
+            botRight = [0 0];
+            return
         end
-    end
-    if(~exist('lLine','var') || ...
-            ~exist('tLine','var') || ...
-            ~exist('bLine','var') || ...
-            ~exist('bLine','var'))
-        court = [];
-        topLeft = [0 0];
-        botLeft = [0 0];
-        topRight = [0 0];
-        botRight = [0 0];
-        return
     end
     lt = houghLineIntersect(lLine, tLine)';
     rt = houghLineIntersect(rLine, tLine)';
     lb = houghLineIntersect(lLine, bLine)';
     rb = houghLineIntersect(rLine, bLine)';
-    if(norm(lt-rt,2) < 10 || ... 
-            norm(lt-lb,2) < 1 || ... 
-            norm(lt-rb,2) < 1 || ... 
-            norm(rt-lb,2) < 1 || ... 
-            norm(rt-rb,2) < 1 || ... 
-            norm(lb-rb,2) < 1)
-        court = [];
-        topLeft = [0 0];
-        botLeft = [0 0];
-        topRight = [0 0];
-        botRight = [0 0];
-        return
-    end
     court = squrMap([courtPt(21,:);courtPt(1,:);courtPt(5,:);courtPt(25,:)], [lb;lt;rt;rb], courtPt);
     topLeft = court(1,:);
     botLeft = court(21,:);
