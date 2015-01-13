@@ -64,6 +64,13 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 lm = [ceil((lt(1)+lb(1))/2) ceil((lt(2)+lb(2))/2)];
 rm = [ceil((rt(1)+rb(1))/2) ceil((rt(2)+rb(2))/2)];
+if(lm(1)<0 || lm(2)<0 || rm(1)<0 || rm(2)<0) %% hot fix
+    UpPlayerCenter = [0 0];
+    DownPlayerCenter = [0 0];
+    UpPlayerPos = [];
+    DownPlayerPos = [];
+    return
+end
 frameUpHalf = RGB(1:lm(1),:,:);
 frameDownHalf = RGB(lm(1):end,:,:);
 
