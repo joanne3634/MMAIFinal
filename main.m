@@ -3,6 +3,7 @@ clear all;
 close all;
 
 addpath('src/');
+<<<<<<< HEAD
 frameIdx = 1 : 3 : 3889;
 % load('src\cache\1_frame.mat');
 [ frameNum, court, topLeft, botLeft, topRight, botRight ] = courtDetection('2.avi',frameIdx);
@@ -12,6 +13,16 @@ frameIdx = 1 : 3 : 3889;
 load('src\cache\2_frame.mat');
 writerObj = VideoWriter('demo3.avi');
 writerObj.FrameRate = 8;
+=======
+frameIdx = 1:10:3880;
+% load('src\cache\1_frame.mat');
+[ frameNum, court, topLeft, botLeft, topRight, botRight ] = courtDetection('1.avi',frameIdx);
+[ UpPlayerCenter, DownPlayerCenter, UpPlayerPos, DownPlayerPos ] = playerTrack('1.avi', topLeft, topRight, botLeft, botRight,frameIdx);
+
+load('src\cache\1_frame.mat');
+writerObj = VideoWriter('demo2.avi');
+writerObj.FrameRate = 3;
+>>>>>>> FETCH_HEAD
 open(writerObj);
 for i = 1 : frameNum
     if(exist('frameIdx','var'))
